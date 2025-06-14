@@ -21,8 +21,10 @@ public class Transporte {
     private double tiempoEstimadoHoras;
     private double costoEstimado;
 
-    public Transporte(Long id, Vehiculo vehiculo, Producto producto, Ruta ruta,
-                      double cantidadKg, double tiempoEstimadoHoras, double costoEstimado) {
+    private String tiempoFormateado;
+    private String costoFormateado;
+
+    public Transporte(Long id, Vehiculo vehiculo, Producto producto, Ruta ruta, double cantidadKg, double tiempoEstimadoHoras, double costoEstimado, String tiempoFormateado, String costoFormateado) {
         this.id = id;
         this.vehiculo = vehiculo;
         this.producto = producto;
@@ -30,6 +32,24 @@ public class Transporte {
         this.cantidadKg = cantidadKg;
         this.tiempoEstimadoHoras = tiempoEstimadoHoras;
         this.costoEstimado = costoEstimado;
+        this.tiempoFormateado = tiempoFormateado;
+        this.costoFormateado = costoFormateado;
+    }
+
+    public String getTiempoFormateado() {
+        return tiempoFormateado;
+    }
+
+    public void setTiempoFormateado(String tiempoFormateado) {
+        this.tiempoFormateado = tiempoFormateado;
+    }
+
+    public String getCostoFormateado() {
+        return costoFormateado;
+    }
+
+    public void setCostoFormateado(String costoFormateado) {
+        this.costoFormateado = costoFormateado;
     }
 
     public Transporte() {

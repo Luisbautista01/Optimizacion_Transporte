@@ -8,11 +8,13 @@ import com.example.TransporteProductosLorica.Servicio.ProductoServicio;
 import com.example.TransporteProductosLorica.Servicio.RutaServicio;
 import com.example.TransporteProductosLorica.Servicio.TransporteServicio;
 import com.example.TransporteProductosLorica.Servicio.VehiculoServicio;
-import com.itextpdf.text.Document;
+import com.itextpdf.text.*;
+import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.LineSeparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -21,9 +23,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.stream.Stream;
+
 
 @SpringBootApplication
 public class TransporteProductosLoricaApplication implements CommandLineRunner {
@@ -41,58 +49,33 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 	public void run(String... args) {
 		Scanner scanner = new Scanner(System.in);
 
-		System.out.print("¿Desea insertar los datos iniciales de productos, vehículos y rutas? (s/n): ");
-		String respuesta = scanner.nextLine().trim().toLowerCase();
+		boolean hayDatos = productoServicio.contarProductos() > 0 ||
+				vehiculoServicio.contarVehiculos() > 0 ||
+				rutaServicio.contarRutas() > 0;
 
-		if (respuesta.equals("s")) {
-			insertarDatosIniciales();
-			System.out.println("Datos iniciales cargados correctamente.\n");
-		} else if (respuesta.equals("n")) {
-			System.out.print("¿Desea ver productos, rutas o vehículos existentes? (s/n): ");
-			String verDatos = scanner.nextLine().trim().toLowerCase();
+		if (hayDatos) {
+			System.out.println("Ya existen datos registrados en el sistema.");
+			System.out.print("¿Desea continuar con el menú principal? (s/n): ");
+			String continuar = scanner.nextLine().trim().toLowerCase();
 
-			if (verDatos.equals("s")) {
-				boolean verMenu = true;
-				while (verMenu) {
-					System.out.println("\n--- ¿Qué desea ver? ---");
-					System.out.println("1. Productos");
-					System.out.println("2. Rutas");
-					System.out.println("3. Vehículos");
-					System.out.println("4. Volver al menú principal");
-					System.out.println("5. Salir");
-					System.out.print("Seleccione una opción: ");
-					int opcionVer = scanner.nextInt();
-					scanner.nextLine();
+			if (!continuar.equals("s")) {
+				System.out.print("¿Desea ver los datos existentes (productos, rutas o vehículos)? (s/n): ");
+				String verDatos = scanner.nextLine().trim().toLowerCase();
 
-					switch (opcionVer) {
-						case 1 -> {
-							List<Producto> productos = productoServicio.listarTodos();
-							if (productos.isEmpty()) System.out.println("No hay productos registrados.");
-							else productos.forEach(System.out::println);
-						}
-						case 2 -> {
-							List<Ruta> rutas = rutaServicio.listarHabilitadas();
-							if (rutas.isEmpty()) System.out.println("No hay rutas registradas.");
-							else rutas.forEach(System.out::println);
-						}
-						case 3 -> {
-							List<Vehiculo> vehiculos = vehiculoServicio.listarTodos();
-							if (vehiculos.isEmpty()) System.out.println("No hay vehículos registrados.");
-							else vehiculos.forEach(System.out::println);
-						}
-						case 4 -> verMenu = false;
-						case 5 -> {
-							System.out.println("Programa finalizado por el usuario.");
-							scanner.close();
-							return;
-						}
-						default -> System.out.println("Opción inválida.");
-					}
+				if (verDatos.equals("s")) {
+					mostrarDatosExistentes(scanner);
+				} else {
+					System.out.println("Programa finalizado por el usuario.");
+					scanner.close();
+					return;
 				}
-			} else {
-				System.out.println("Programa finalizado por el usuario.");
-				scanner.close();
-				return;
+			}
+		} else {
+			System.out.print("¿Desea insertar los datos iniciales de productos, vehículos y rutas? (s/n): ");
+			String respuesta = scanner.nextLine().trim().toLowerCase();
+			if (respuesta.equals("s")) {
+				insertarDatosIniciales();
+				System.out.println("Datos iniciales cargados correctamente.\n");
 			}
 		}
 
@@ -120,6 +103,47 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 		scanner.close();
 		System.out.println("\n¡Gracias por usar el sistema de transporte agrícola Lorica!");
 	}
+
+	private void mostrarDatosExistentes(Scanner scanner) {
+		boolean verMenu = true;
+		while (verMenu) {
+			System.out.println("\n--- ¿Qué desea ver? ---");
+			System.out.println("1. Productos");
+			System.out.println("2. Rutas");
+			System.out.println("3. Vehículos");
+			System.out.println("4. Volver al menú principal");
+			System.out.println("5. Salir");
+			System.out.print("Seleccione una opción: ");
+			int opcionVer = scanner.nextInt();
+			scanner.nextLine();
+
+			switch (opcionVer) {
+				case 1 -> {
+					List<Producto> productos = productoServicio.listarTodos();
+					if (productos.isEmpty()) System.out.println("No hay productos registrados.");
+					else productos.forEach(System.out::println);
+				}
+				case 2 -> {
+					List<Ruta> rutas = rutaServicio.listarHabilitadas();
+					if (rutas.isEmpty()) System.out.println("No hay rutas registradas.");
+					else rutas.forEach(System.out::println);
+				}
+				case 3 -> {
+					List<Vehiculo> vehiculos = vehiculoServicio.listarTodos();
+					if (vehiculos.isEmpty()) System.out.println("No hay vehículos registrados.");
+					else vehiculos.forEach(System.out::println);
+				}
+				case 4 -> verMenu = false;
+				case 5 -> {
+					System.out.println("Programa finalizado por el usuario.");
+					scanner.close();
+					System.exit(0);
+				}
+				default -> System.out.println("Opción inválida.");
+			}
+		}
+	}
+
 
 	private void insertarDatosIniciales() {
 		if (productoServicio.contarProductos() == 0) {
@@ -170,6 +194,26 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 	}
 
 	private void agregarVehiculo(Scanner scanner) {
+		List<Vehiculo> vehiculos = vehiculoServicio.listarTodos();
+
+		if (!vehiculos.isEmpty()) {
+			System.out.println("\nVehículos existentes:");
+			for (int i = 0; i < vehiculos.size(); i++) {
+				System.out.println(i + ". " + vehiculos.get(i).getTipo() + " - " + vehiculos.get(i).getUsoComun());
+			}
+			System.out.print("¿Desea usar uno de estos vehículos? (s/n): ");
+			String usarExistente = scanner.nextLine().trim().toLowerCase();
+
+			if (usarExistente.equals("s")) {
+				System.out.print("Seleccione el índice del vehículo: ");
+				int index = scanner.nextInt();
+				scanner.nextLine();
+				Vehiculo v = vehiculos.get(index);
+				System.out.println("Vehículo seleccionado: " + v.getTipo());
+				return;
+			}
+		}
+
 		System.out.print("Tipo de vehículo: ");
 		String tipo = scanner.nextLine();
 		System.out.print("Capacidad Kg (min): ");
@@ -188,13 +232,34 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 		System.out.print("Uso común: ");
 		String uso = scanner.nextLine();
 
-		Vehiculo v = new Vehiculo(tipo, kgMin, kgMax, m3Min, m3Max, vMin, vMax, uso);
-		vehiculoServicio.crearVehiculo(v);
+		Vehiculo nuevo = new Vehiculo(tipo, kgMin, kgMax, m3Min, m3Max, vMin, vMax, uso);
+		vehiculoServicio.crearVehiculo(nuevo);
 		System.out.println("Vehículo registrado correctamente.");
 	}
 
+
 	private void agregarProducto(Scanner scanner) {
-		System.out.print("Nombre del producto: ");
+		List<Producto> productos = productoServicio.listarTodos();
+
+		if (!productos.isEmpty()) {
+			System.out.println("\nProductos existentes:");
+			for (int i = 0; i < productos.size(); i++) {
+				System.out.println(i + ". " + productos.get(i).getNombre());
+			}
+			System.out.print("¿Desea usar uno de estos productos? (s/n): ");
+			String usarExistente = scanner.nextLine().trim().toLowerCase();
+
+			if (usarExistente.equals("s")) {
+				System.out.print("Seleccione el índice del producto: ");
+				int index = scanner.nextInt();
+				scanner.nextLine();
+				Producto producto = productos.get(index);
+				System.out.println("Producto seleccionado: " + producto.getNombre());
+				return;
+			}
+		}
+
+		System.out.print("Nombre del nuevo producto: ");
 		String nombre = scanner.nextLine();
 
 		System.out.println("Tipos de carga válidos:");
@@ -216,12 +281,33 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 		System.out.print("Características: ");
 		String caracteristicas = scanner.nextLine();
 
-		Producto p = new Producto(nombre, tipoCarga, caracteristicas);
-		productoServicio.crearProducto(p);
+		Producto nuevo = new Producto(nombre, tipoCarga, caracteristicas);
+		productoServicio.crearProducto(nuevo);
 		System.out.println("Producto registrado correctamente.");
 	}
 
 	private void agregarRuta(Scanner scanner) {
+		List<Ruta> rutas = rutaServicio.listarHabilitadas();
+
+		if (!rutas.isEmpty()) {
+			System.out.println("\nRutas existentes:");
+			for (int i = 0; i < rutas.size(); i++) {
+				Ruta r = rutas.get(i);
+				System.out.println(i + ". " + r.getOrigen() + " -> " + r.getDestino() + " (" + r.getDistanciaKm() + " km)");
+			}
+			System.out.print("¿Desea usar una de estas rutas? (s/n): ");
+			String usarExistente = scanner.nextLine().trim().toLowerCase();
+
+			if (usarExistente.equals("s")) {
+				System.out.print("Seleccione el índice de la ruta: ");
+				int index = scanner.nextInt();
+				scanner.nextLine();
+				Ruta r = rutas.get(index);
+				System.out.println("Ruta seleccionada: " + r.getOrigen() + " -> " + r.getDestino());
+				return;
+			}
+		}
+
 		System.out.print("Origen: ");
 		String origen = scanner.nextLine();
 		System.out.print("Destino: ");
@@ -230,12 +316,17 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 		double distancia = scanner.nextDouble();
 		scanner.nextLine();
 
-		Ruta ruta = new Ruta(origen, destino, distancia, true);
-		rutaServicio.crearRuta(ruta);
+		Ruta nueva = new Ruta(origen, destino, distancia, true);
+		rutaServicio.crearRuta(nueva);
 		System.out.println("Ruta registrada correctamente.");
 	}
 
-	private void optimizarTransporte(Scanner scanner) {
+    public static String formatoPesosColombianos(double valor) {
+        NumberFormat nf = NumberFormat.getInstance(new Locale("es", "CO"));
+        return "$" + nf.format(valor) + " COP";
+    }
+
+    private void optimizarTransporte(Scanner scanner) {
 		List<Producto> productos = productoServicio.listarTodos();
 		List<Ruta> rutas = rutaServicio.listarHabilitadas();
 		List<Vehiculo> vehiculos = vehiculoServicio.listarTodos();
@@ -276,9 +367,43 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 			return;
 		}
 
-		System.out.print("\nCantidad a transportar (kg): ");
+		System.out.println("\n=== Paso 3: Capacidades disponibles para este tipo de producto ===");
+
+		// Filtrar vehículos compatibles por tipo de producto
+		List<Vehiculo> vehiculosCompatiblesTipo = vehiculos.stream()
+				.filter(v -> transporteServicio.esCompatibleConTipoCarga(producto, v))
+				.toList();
+
+		if (vehiculosCompatiblesTipo.isEmpty()) {
+			System.out.println("No hay vehículos compatibles con el tipo de carga del producto seleccionado.");
+			return;
+		}
+
+		// Calcular rangos
+		double minKg = vehiculosCompatiblesTipo.stream()
+				.mapToDouble(Vehiculo::getCapacidadKgMin)
+				.min().orElse(0);
+		double maxKg = vehiculosCompatiblesTipo.stream()
+				.mapToDouble(Vehiculo::getCapacidadKgMax)
+				.max().orElse(0);
+
+		// Mostrar información al usuario
+		System.out.printf("Vehículos compatibles pueden transportar entre %.0f kg y %.0f kg de %s.\n",
+				minKg, maxKg, producto.getNombre());
+
+		System.out.print("Ingrese la cantidad a transportar (kg): ");
 		double cantidad = scanner.nextDouble();
 		scanner.nextLine();
+
+		if (cantidad < minKg || cantidad > maxKg) {
+			System.out.println("No hay vehículos que soporten esa cantidad. Intente con otra dentro del rango.");
+			return;
+		}
+
+        // Sugerir vehículo recomendado
+		Vehiculo recomendado = transporteServicio.sugerirVehiculo(cantidad, vehiculosCompatiblesTipo);
+		System.out.printf("Vehículo sugerido: %s (máx %.0f kg, uso común: %s)\n\n",
+				recomendado.getTipo(), recomendado.getCapacidadKgMax(), recomendado.getUsoComun());
 
 		System.out.println("\n=== Paso 4: Selección de vehículo compatible ===");
 		List<Vehiculo> compatibles = transporteServicio.obtenerVehiculosCompatibles(producto, cantidad, ruta, vehiculos);
@@ -306,12 +431,122 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 		System.out.println("Ruta: " + ruta.getOrigen() + " -> " + ruta.getDestino());
 		System.out.println("Vehículo: " + elegido.getTipo());
 		System.out.println("Cantidad: " + cantidad + " kg");
-		System.out.printf("Tiempo estimado: %.2f horas\n", transporte.getTiempoEstimadoHoras());
-		System.out.printf("Costo estimado: $%.2f\n", transporte.getCostoEstimado());
-		System.out.println("Transporte registrado con éxito.");
-	}
+		System.out.println("Tiempo estimado: " + transporte.getTiempoFormateado());
+        System.out.println("Costo estimado: " + formatoPesosColombianos(transporte.getCostoEstimado()));
 
-	private void mostrarEstadisticasGenerales() {
+        System.out.println("Transporte registrado con éxito.");
+
+        System.out.print("¿Desea exportar este transporte optimizado a PDF? (s/n): ");
+        String exportar = scanner.nextLine().trim().toLowerCase();
+        if (exportar.equals("s")) {
+            System.out.print("Ingrese el nombre del archivo (ej: transporte_optimizado.pdf): ");
+            String nombreArchivo = scanner.nextLine().trim();
+            exportarTransporteUnicoPDF(nombreArchivo, transporte);
+        }
+
+    }
+    private void exportarTransporteUnicoPDF(String nombreArchivoBase, Transporte transporte) {
+        try {
+            String fechaHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            if (!nombreArchivoBase.toLowerCase().endsWith(".pdf")) {
+                nombreArchivoBase += "_" + fechaHora + ".pdf";
+            } else {
+                nombreArchivoBase = nombreArchivoBase.replace(".pdf", "_" + fechaHora + ".pdf");
+            }
+
+            String userHome = System.getProperty("user.home");
+            java.nio.file.Path downloadsPath = java.nio.file.Paths.get(userHome, "Downloads");
+            if (!java.nio.file.Files.exists(downloadsPath)) {
+                java.nio.file.Files.createDirectories(downloadsPath);
+            }
+            java.nio.file.Path archivoPath = downloadsPath.resolve(nombreArchivoBase);
+            String rutaCompleta = archivoPath.toAbsolutePath().toString();
+
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(rutaCompleta));
+            document.open();
+
+            // Logo
+            try {
+                String logoPath = Objects.requireNonNull(getClass().getClassLoader().getResource("static/img/logo.jpg")).getPath();
+                Image logo = Image.getInstance(logoPath);
+                logo.scaleToFit(80, 80);
+                logo.setAlignment(Image.ALIGN_CENTER);
+                document.add(logo);
+            } catch (Exception e) {
+                System.out.println("No se pudo cargar el logo: " + e.getMessage());
+            }
+
+            // Título
+            Font tituloFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.DARK_GRAY);
+            Paragraph titulo = new Paragraph("Resumen del Transporte Optimizado", tituloFont);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(15);
+            document.add(titulo);
+
+            // Tabla
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(10f);
+            table.setWidths(new float[]{2.5f, 2f, 2f, 2.5f, 2f, 2f});
+
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, BaseColor.WHITE);
+            BaseColor headerBg = new BaseColor(0, 121, 182);
+
+            Stream.of("Producto", "Origen", "Destino", "Vehículo", "Tiempo (HH:mm:ss)", "Costo ($)")
+                    .forEach(tituloColumna -> {
+                        PdfPCell header = new PdfPCell(new Phrase(tituloColumna, headerFont));
+                        header.setBackgroundColor(headerBg);
+                        header.setHorizontalAlignment(Element.ALIGN_CENTER);
+                        header.setPadding(8f);
+                        table.addCell(header);
+                    });
+
+            // Celdas de contenido
+            Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+            table.addCell(new Phrase(transporte.getProducto().getNombre(), cellFont));
+            table.addCell(new Phrase(transporte.getRuta().getOrigen(), cellFont));
+            table.addCell(new Phrase(transporte.getRuta().getDestino(), cellFont));
+            table.addCell(new Phrase(transporte.getVehiculo().getTipo(), cellFont));
+
+            double horas = transporte.getTiempoEstimadoHoras();
+            int totalSegundos = (int) (horas * 3600);
+            int h = totalSegundos / 3600;
+            int m = (totalSegundos % 3600) / 60;
+            int s = totalSegundos % 60;
+            String tiempoFormateado = String.format("%02d:%02d:%02d", h, m, s);
+
+            table.addCell(new Phrase(tiempoFormateado, cellFont));
+            table.addCell(new Phrase(formatoPesosColombianos(transporte.getCostoEstimado()), cellFont));
+
+            document.add(table);
+
+            // Pie de página
+            document.add(new LineSeparator());
+            Font pieFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10, BaseColor.GRAY);
+            String fechaGeneracion = "Generado el: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+            Paragraph footer = new Paragraph(fechaGeneracion, pieFont);
+            footer.setAlignment(Element.ALIGN_RIGHT);
+            document.add(footer);
+
+            document.close();
+            System.out.println("PDF generado correctamente en: " + rutaCompleta);
+
+            // Abrir PDF
+            File archivoPDF = archivoPath.toFile();
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(archivoPDF);
+                System.out.println("PDF abierto automáticamente.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error al generar PDF: " + e.getMessage());
+        }
+    }
+
+    private void mostrarEstadisticasGenerales() {
 		long totalVehiculos = vehiculoServicio.contarVehiculos();
 		long totalProductos = productoServicio.contarProductos();
 		long totalRutas = rutaServicio.contarRutas();
@@ -327,14 +562,15 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 			double tiempoPromedio = transportes.stream().mapToDouble(Transporte::getTiempoEstimadoHoras).average().orElse(0);
 			double costoPromedio = transportes.stream().mapToDouble(Transporte::getCostoEstimado).average().orElse(0);
 			System.out.printf("Tiempo promedio de transporte: %.2f horas%n", tiempoPromedio);
-			System.out.printf("Costo promedio de transporte: $%.2f%n", costoPromedio);
-		}
+            System.out.println("Costo promedio de transporte: " + formatoPesosColombianos(costoPromedio));
+
+        }
 
 		System.out.print("\n¿Desea exportar el historial a PDF? (s/n): ");
 		Scanner scanner = new Scanner(System.in);
 		String exportar = scanner.nextLine().trim().toLowerCase();
 		if (exportar.equals("s")) {
-			System.out.print("Ingrese el nombre del archivo (ej: historial.pdf): ");
+			System.out.print("Ingrese el nombre del archivo (ej: historial_transportes.pdf): ");
 			String nombreArchivo = scanner.nextLine().trim();
 			exportarTransportesPDF(nombreArchivo);
 		}
@@ -342,95 +578,120 @@ public class TransporteProductosLoricaApplication implements CommandLineRunner {
 	}
 
 	private void exportarTransportesPDF(String nombreArchivoBase) {
-		List<Transporte> transportes = transporteServicio.listarTodos();
+        List<Transporte> transportes = transporteServicio.listarTodos();
 
-		if (transportes.isEmpty()) {
-			System.out.println("No hay transportes para exportar.");
-			return;
-		}
+        if (transportes.isEmpty()) {
+            System.out.println("No hay transportes para exportar.");
+            return;
+        }
 
-		try {
-			// Fecha y hora actual para el nombre del archivo
-			String fechaHora = java.time.LocalDateTime.now()
-					.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        try {
+            // Nombre de archivo con fecha/hora
+            String fechaHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            if (!nombreArchivoBase.toLowerCase().endsWith(".pdf")) {
+                nombreArchivoBase += "_" + fechaHora + ".pdf";
+            } else {
+                nombreArchivoBase = nombreArchivoBase.replace(".pdf", "_" + fechaHora + ".pdf");
+            }
 
-			// Asegurar que el nombre tenga .pdf y agregar fecha/hora
-			if (!nombreArchivoBase.toLowerCase().endsWith(".pdf")) {
-				nombreArchivoBase += "_" + fechaHora + ".pdf";
-			} else {
-				int index = nombreArchivoBase.lastIndexOf(".pdf");
-				nombreArchivoBase = nombreArchivoBase.substring(0, index) + "_" + fechaHora + ".pdf";
-			}
+            // Ruta de descarga
+            String userHome = System.getProperty("user.home");
+            java.nio.file.Path downloadsPath = java.nio.file.Paths.get(userHome, "Downloads");
+            if (!java.nio.file.Files.exists(downloadsPath)) {
+                java.nio.file.Files.createDirectories(downloadsPath);
+            }
+            java.nio.file.Path archivoPath = downloadsPath.resolve(nombreArchivoBase);
+            String rutaCompleta = archivoPath.toAbsolutePath().toString();
 
-			// Ruta del usuario + carpeta Descargas
-			String userHome = System.getProperty("user.home");
-			java.nio.file.Path downloadsPath = java.nio.file.Paths.get(userHome, "Downloads");
+            // Crear PDF
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(rutaCompleta));
+            document.open();
 
-			// Crear carpeta Downloads si no existe
-			if (!java.nio.file.Files.exists(downloadsPath)) {
-				java.nio.file.Files.createDirectories(downloadsPath);
-				System.out.println("Carpeta 'Downloads' creada en: " + downloadsPath.toString());
-			}
+            // Logo
+            try {
+                String logoPath = Objects.requireNonNull(getClass().getClassLoader().getResource("static/img/logo.jpg")).getPath();
+                Image logo = Image.getInstance(logoPath);
+                logo.scaleToFit(80, 80);
+                logo.setAlignment(Image.ALIGN_CENTER);
+                document.add(logo);
+            } catch (Exception e) {
+                System.out.println("No se pudo cargar el logo: " + e.getMessage());
+            }
 
-			// Ruta completa del archivo
-			java.nio.file.Path archivoPath = downloadsPath.resolve(nombreArchivoBase);
-			String rutaCompleta = archivoPath.toAbsolutePath().toString();
+            // Título central con fuente grande y negrita
+            Font tituloFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.DARK_GRAY);
+            Paragraph titulo = new Paragraph("Historial de Transportes", tituloFont);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(15);
+            document.add(titulo);
 
-			// Crear documento PDF
-			Document document = new Document();
-			PdfWriter.getInstance(document, new FileOutputStream(rutaCompleta));
-			document.open();
+            // Tabla
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(10f);
+            table.setWidths(new float[]{2.5f, 2f, 2f, 2.5f, 2f, 2f}); // Mejora distribución
 
-			// Agregar logo al principio (logo.png debe estar en src/main/resources/static)
-			try {
-				String logoPath = Objects.requireNonNull(getClass().getClassLoader().getResource("static/img/logo.png")).getPath();
-				Image logo = Image.getInstance(logoPath);
-				logo.scaleToFit(100, 100); // Ajusta tamaño si es necesario
-				logo.setAlignment(Image.ALIGN_CENTER);
-				document.add(logo);
-			} catch (Exception e) {
-				System.out.println("No se pudo cargar el logo: " + e.getMessage());
-			}
+            // Encabezado con color de fondo
+            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, BaseColor.WHITE);
+            BaseColor headerBg = new BaseColor(0, 121, 182); // Azul claro
 
-			document.add(new Paragraph("Historial de Transportes"));
-			document.add(new Paragraph(" ")); // Espacio
+            Stream.of("Producto", "Origen", "Destino", "Vehículo", "Tiempo (HH:mm:ss)", "Costo ($)")
+                    .forEach(tituloColumna -> {
+                        PdfPCell header = new PdfPCell(new Phrase(tituloColumna, headerFont));
+                        header.setBackgroundColor(headerBg);
+                        header.setHorizontalAlignment(Element.ALIGN_CENTER);
+                        header.setPadding(8f);
+                        table.addCell(header);
+                    });
 
-			PdfPTable table = new PdfPTable(6);
-			table.setWidthPercentage(100);
+            // Filas de contenido
+            Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            for (Transporte t : transportes) {
+                table.addCell(new Phrase(t.getProducto().getNombre(), cellFont));
+                table.addCell(new Phrase(t.getRuta().getOrigen(), cellFont));
+                table.addCell(new Phrase(t.getRuta().getDestino(), cellFont));
+                table.addCell(new Phrase(t.getVehiculo().getTipo(), cellFont));
 
-			table.addCell("Producto");
-			table.addCell("Origen");
-			table.addCell("Destino");
-			table.addCell("Vehículo");
-			table.addCell("Tiempo (h)");
-			table.addCell("Costo ($)");
+                // Formato HH:mm:ss
+                double horas = t.getTiempoEstimadoHoras();
+                int totalSegundos = (int) (horas * 3600);
+                int h = totalSegundos / 3600;
+                int m = (totalSegundos % 3600) / 60;
+                int s = totalSegundos % 60;
+                String tiempoFormateado = String.format("%02d:%02d:%02d", h, m, s);
 
-			for (Transporte t : transportes) {
-				table.addCell(t.getProducto().getNombre());
-				table.addCell(t.getRuta().getOrigen());
-				table.addCell(t.getRuta().getDestino());
-				table.addCell(t.getVehiculo().getTipo());
-				table.addCell(String.format("%.2f", t.getTiempoEstimadoHoras()));
-				table.addCell(String.format("%.2f", t.getCostoEstimado()));
-			}
+                table.addCell(new Phrase(tiempoFormateado, cellFont));
+                table.addCell(new Phrase(formatoPesosColombianos(t.getCostoEstimado()), cellFont));
 
-			document.add(table);
-			document.close();
+            }
 
-			System.out.println("PDF generado correctamente en: " + rutaCompleta);
+            document.add(table);
 
-			// Abrir automáticamente el archivo PDF
-			File archivoPDF = archivoPath.toFile();
-			if (Desktop.isDesktopSupported()) {
-				Desktop.getDesktop().open(archivoPDF);
-				System.out.println("PDF abierto automáticamente.");
-			} else {
-				System.out.println("Tu sistema no soporta la apertura automática de archivos.");
-			}
+            // Línea separadora y pie de página con fecha/hora
+            document.add(new LineSeparator());
+            Font pieFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10, BaseColor.GRAY);
+            String fechaGeneracion = "Generado el: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+            Paragraph footer = new Paragraph(fechaGeneracion, pieFont);
+            footer.setAlignment(Element.ALIGN_RIGHT);
+            document.add(footer);
 
-		} catch (Exception e) {
-			System.out.println("Error al generar o abrir el PDF: " + e.getMessage());
-		}
-	}
+            document.close();
+            System.out.println("PDF generado correctamente en: " + rutaCompleta);
+
+            // Abrir PDF
+            File archivoPDF = archivoPath.toFile();
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(archivoPDF);
+                System.out.println("PDF abierto automáticamente.");
+            } else {
+                System.out.println("Tu sistema no soporta la apertura automática.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error al generar PDF: " + e.getMessage());
+        }
+    }
 
 }

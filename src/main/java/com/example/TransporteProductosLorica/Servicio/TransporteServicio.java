@@ -6,6 +6,9 @@ import com.example.TransporteProductosLorica.Repositorio.TransporteRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.text.NumberFormat;
+import java.util.Comparator;
+import java.util.Locale;
 
 import java.util.List;
 
@@ -135,6 +138,9 @@ public class TransporteServicio {
         t.setTiempoEstimadoHoras(tiempoEstimadoHoras);
         t.setCostoEstimado(costoEstimado);
 
+        t.setTiempoFormateado(formatearTiempo(tiempoEstimadoHoras));
+        t.setCostoFormateado(formatearCosto(costoEstimado));
+
         return t;
     }
 
@@ -168,6 +174,43 @@ public class TransporteServicio {
         else if (cantidadKg > 500) costo *= 0.95;
 
         return costo;
+    }
+
+    private String formatearTiempo(double tiempoHoras) {
+        int totalSegundos = (int) Math.round(tiempoHoras * 3600);
+        int horas = totalSegundos / 3600;
+        int minutos = (totalSegundos % 3600) / 60;
+        int segundos = totalSegundos % 60;
+
+        return String.format("%02d:%02d:%02d", horas, minutos, segundos);
+    }
+
+    private String formatearCosto(double costo) {
+        NumberFormat formatoPesos = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+        return formatoPesos.format(costo);
+    }
+
+    public boolean esCompatibleConTipoCarga(Producto producto, Vehiculo vehiculo) {
+        // Aquí puedes establecer una lógica más compleja si lo deseas
+        switch (producto.getTipoCarga()) {
+            case NO_PERECEDERO:
+                return vehiculo.getUsoComun().toLowerCase().contains("granel") || vehiculo.getCapacidadKgMax() >= 500;
+            case PERECEDERO:
+            case FRUTA_FRESCA:
+                return vehiculo.getVelocidadMax() >= 40; // Para entregas rápidas
+            case GRANO:
+                return vehiculo.getUsoComun().toLowerCase().contains("granel") || vehiculo.getCapacidadKgMax() >= 1000;
+            default:
+                return true;
+        }
+    }
+
+    public Vehiculo sugerirVehiculo(double cantidad, List<Vehiculo> compatibles) {
+        return compatibles.stream()
+                .filter(v -> v.getCapacidadKgMax() >= cantidad)
+                .sorted(Comparator.comparingDouble(Vehiculo::getCapacidadKgMax))
+                .findFirst()
+                .orElse(compatibles.get(0));
     }
 
     private void validarTransporte(Transporte t) {
