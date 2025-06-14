@@ -1,0 +1,99 @@
+package com.example.TransporteProductosLorica.Servicio;
+
+import com.example.TransporteProductosLorica.Excepciones.InformacionIncompletaExcepcion;
+import com.example.TransporteProductosLorica.Modelo.Producto;
+import com.example.TransporteProductosLorica.Repositorio.ProductoRepositorio;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class ProductoServicio {
+    @Autowired
+    private ProductoRepositorio productoRepositorio;
+
+    @Transactional
+    public Producto crearProducto(Producto producto) {
+        validarProducto(producto);
+
+        if (productoRepositorio.existsByNombre(producto.getNombre())) {
+            throw new IllegalArgumentException("Ya existe un producto con el nombre: " + producto.getNombre());
+        }
+
+        return productoRepositorio.save(producto);
+    }
+    
+    @Transactional
+    public Producto actualizarProducto(Long id, Producto nuevo) {
+        validarProducto(nuevo);
+
+        Producto existente = productoRepositorio.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado con ID: " + id));
+
+        if (!existente.getNombre().equals(nuevo.getNombre()) &&
+                productoRepositorio.existsByNombre(nuevo.getNombre())) {
+            throw new IllegalArgumentException("Ya existe un producto con el nombre: " + nuevo.getNombre());
+        }
+
+        existente.setNombre(nuevo.getNombre());
+        existente.setTipoCarga(nuevo.getTipoCarga());
+        existente.setCaracteristicas(nuevo.getCaracteristicas());
+
+        return productoRepositorio.save(existente);
+    }
+
+    @Transactional
+    public void eliminarProducto(Long id) {
+        if (!productoRepositorio.existsById(id)) {
+            throw new IllegalArgumentException("Producto no encontrado con ID: " + id);
+        }
+        productoRepositorio.deleteById(id);
+    }
+
+    @Transactional
+    public List<Producto> listarTodos() {
+        return productoRepositorio.findAll();
+    }
+
+    @Transactional
+    public List<Producto> buscarPorNombre(String nombre) {
+    return productoRepositorio.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    @Transactional
+    public List<Producto> filtrarPorTipoCarga(String tipoCarga) {
+        return productoRepositorio.findByTipoCargaIgnoreCase(tipoCarga);
+    }
+
+    public long contarProductos() {
+        return productoRepositorio.count();
+    }
+
+    private void validarProducto(Producto producto) {
+        if (producto == null) {
+            throw new InformacionIncompletaExcepcion("El producto no puede ser nulo.");
+        }
+
+        if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+            throw new InformacionIncompletaExcepcion("El nombre del producto no puede estar vacío.");
+        }
+
+        if (producto.getTipoCarga() == null || producto.getTipoCarga().isBlank()) {
+            throw new InformacionIncompletaExcepcion("El tipo de carga no puede estar vacío.");
+        }
+
+        if (producto.getCaracteristicas() == null || producto.getCaracteristicas().isBlank()) {
+            throw new InformacionIncompletaExcepcion("Las características no pueden estar vacías.");
+        }
+
+        String tipoCarga = producto.getTipoCarga().toLowerCase();
+        List<String> tiposValidos = List.of("refrigerado", "peligroso", "agrícola", "liviano");
+
+        if (!tiposValidos.contains(tipoCarga)) {
+            throw new IllegalArgumentException("Tipo de carga no reconocido: " + producto.getTipoCarga());
+        }
+    }
+}

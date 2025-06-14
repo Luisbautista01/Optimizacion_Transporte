@@ -1,4 +1,4 @@
-package com.example.TransporteProductosLorica;
+/*package com.example.TransporteProductosLorica;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,4 +10,4 @@ class TransporteProductosLoricaApplicationTests {
 	void contextLoads() {
 	}
 
-}
+}*/

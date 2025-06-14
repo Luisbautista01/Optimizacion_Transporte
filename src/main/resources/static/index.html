@@ -3,47 +3,659 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optimización de Rutas de transporte</title>
+    <title>Optimización de Rutas de Transporte</title>
 
+    <!-- Bootstrap local -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
+    <!-- Íconos -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <style>
+    <!-- Bootstrap JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
 
+    <style>
+        .form-section {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            border-radius: 1rem;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .table {
+            background-color: #fff;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+            url('img/logo.jpg') center/cover no-repeat;
+            min-height: 60vh;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
     </style>
+
+    <script type="module" src="mapa.js"></script>
+
 </head>
 <body>
+<!-- Menú de navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Transporte Lorica</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-<!-- Encabezado con imagen y texto -->
-<header id="banner" class="banner text-center">
-    <h1 class="display-4">Bienvenido a</h1>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="nav nav-tabs bg-dark" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="inicio-tab" data-bs-toggle="tab" data-bs-target="#inicio"
+                            type="button" role="tab">Inicio
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="vehiculos-tab" data-bs-toggle="tab" data-bs-target="#vehiculos"
+                            type="button" role="tab">Vehículos
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos"
+                            type="button" role="tab">Productos
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="rutas-tab" data-bs-toggle="tab" data-bs-target="#rutas" type="button"
+                            role="tab">Rutas
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="transportes-tab" data-bs-toggle="tab" data-bs-target="#transportes"
+                            type="button" role="tab">Transportes
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
-</header>
+<div class="tab-content mt-4">
+    <div class="tab-content p-4" id="myTabContent">
+        <div class="tab-pane fade show active" id="inicio" role="tabpanel" aria-labelledby="inicio-tab">
+            <section class="welcome-banner text-white text-center py-5">
+                <div class="container">
+                    <h1 class="display-4 fw-bold">¡Bienvenido a Transporte Lorica!</h1>
+                    <p class="lead mt-3">Optimiza rutas, registra vehículos, productos y controla tus operaciones logísticas de manera eficiente.</p>
+                    <p class="fst-italic">Usa el menú superior para acceder a cada funcionalidad.</p>
+                </div>
+            </section>
+        </div>
 
-<!-- Navegación -->
-<div class="container my-4">
+        <div class="tab-pane fade" id="vehiculos" role="tabpanel" aria-labelledby="vehiculos-tab">
+            <div class="container">
+                <div class="form-section">
+                    <h3 class="mb-4 text-center">Registrar Vehículo</h3>
+                    <form id="formVehiculo" enctype="multipart/form-data">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo</label>
+                                <input type="text" class="form-control" name="tipo" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Imagen</label>
+                                <input type="file" class="form-control" name="imagen" accept="image/*" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Uso Común</label>
+                                <input type="text" class="form-control" name="usoComun" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Capacidad Kg Mín</label>
+                                <input type="number" class="form-control" name="capacidadKgMin" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Capacidad Kg Máx</label>
+                                <input type="number" class="form-control" name="capacidadKgMax" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Capacidad M3 Mín</label>
+                                <input type="number" class="form-control" name="capacidadM3Min" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Capacidad M3 Máx</label>
+                                <input type="number" class="form-control" name="capacidadM3Max" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Velocidad Mín</label>
+                                <input type="number" class="form-control" name="velocidadMin" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Velocidad Máx</label>
+                                <input type="number" class="form-control" name="velocidadMax" step="0.01">
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success mt-4 px-4">
+                                <i class="fas fa-save me-2"></i>Guardar Vehículo
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
+                <div class="form-section mt-5">
+                    <h3 class="mb-4">Lista de Vehículos</h3>
+                    <table class="table table-striped" id="tablaVehiculos">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Uso Común</th>
+                            <th>Imagen</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="productos">
+            <div class="container">
+                <div class="form-section">
+                    <h3 class="mb-4 text-center">Registrar Producto</h3>
+                    <form id="formProducto">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" name="nombre" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Carga</label>
+                                <input type="text" class="form-control" name="tipoCarga" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Características</label>
+                                <input type="text" class="form-control" name="caracteristicas" required>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success mt-4 px-4">
+                                <i class="fas fa-save me-2"></i>Guardar Producto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-section mt-4">
+                    <h4>Lista de Productos</h4>
+                    <table class="table table-striped" id="tablaProductos">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo de Carga</th>
+                            <th>Características</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="rutas">
+            <div class="container">
+                <div class="form-section">
+                    <h3 class="text-center">Registrar Ruta</h3>
+                    <form id="formRuta">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Origen</label>
+                                <input type="text" class="form-control" name="origen" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Destino</label>
+                                <input type="text" class="form-control" name="destino" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Distancia (km)</label>
+                                <input type="number" step="0.01" class="form-control" name="distanciaKm" required>
+                            </div>
+                            <div class="col-md-4 mt-2">
+                                <div class="form-check mt-4">
+                                    <input type="checkbox" name="habilitada" class="form-check-input" id="habilitadaRuta">
+                                    <label class="form-check-label ms-1" for="habilitadaRuta">¿Habilitada?</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success mt-4 px-4">Guardar Ruta</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="mt-3 text-center">
+                    <button class="btn btn-info btn-sm">
+                        Simular Ruta
+                    </button>
+                </div>
+
+                <div id="tiempoEstimado" class="alert alert-info mt-3 text-center"></div>
+
+                <div class="form-section mt-4">
+                    <h4>Lista de Rutas</h4>
+                    <table class="table table-striped" id="tablaRutas">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Distancia</th>
+                            <th>Habilitada</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="transportes">
+            <div class="container">
+                <div class="form-section">
+                    <h3 class="text-center">Registrar Transporte</h3>
+                    <form id="formTransporte">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Vehículo</label>
+                                <select name="vehiculoId" class="form-control" required></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Producto</label>
+                                <select name="productoId" class="form-control" required></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ruta</label>
+                                <select name="rutaId" class="form-control" required></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cantidad (Kg)</label>
+                                <input type="number" name="cantidadKg" class="form-control" step="0.01" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tiempo Estimado (horas)</label>
+                                <input type="number" name="tiempoEstimadoHoras" class="form-control" step="0.01" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Costo Estimado</label>
+                                <input type="number" name="costoEstimado" class="form-control" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success mt-4 px-4">
+                                <i class="fas fa-save me-2"></i>Guardar Transporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-section mt-4">
+                    <h4>Lista de Transportes</h4>
+                    <table class="table table-striped" id="tablaTransportes">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vehículo</th>
+                            <th>Producto</th>
+                            <th>Ruta</th>
+                            <th>Cantidad</th>
+                            <th>Tiempo</th>
+                            <th>Costo</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Pie de Página -->
-<footer class="bg-dark text-white text-center py-4">
-    <p>Los Foráneos © 2024 - Todos los derechos reservados</p>
-</footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
 
+    const tablaVehiculos = document.querySelector("#tablaVehiculos tbody");
+    axios.defaults.baseURL = "http://localhost:8080/transporte-lorica";
+
+    function cargarVehiculos() {
+        axios.get("/api/vehiculos")
+            .then(res => {
+                tablaVehiculos.innerHTML = res.data.map(v => `
+                    <tr>
+                        <td>${v.id}</td>
+                        <td>${v.tipo}</td>
+                        <td>${v.usoComun}</td>
+                        <td><img src="/${v.imagen}" width="100" height="70" style="object-fit: cover; border-radius: 8px;"></td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-2" onclick='editarVehiculo(${JSON.stringify(v)})'>Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarVehiculo(${v.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join("");
+            })
+            .catch(err => alert("Error al cargar los vehículos"));
+    }
+
+    function eliminarVehiculo(id) {
+        if (confirm("¿Está seguro que desea eliminar este vehículo?")) {
+            axios.delete(`/api/vehiculos/${id}`)
+                .then(() => cargarVehiculos())
+                .catch(err => alert("Error al eliminar el vehículo"));
+        }
+    }
+
+    function editarVehiculo(v) {
+        const form = document.getElementById("formVehiculo");
+        Object.keys(v).forEach(k => {
+            if (form.elements[k]) form.elements[k].value = v[k];
+        });
+        form.setAttribute("data-id", v.id);
+    }
+
+    document.getElementById("formVehiculo").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const vehiculo = {
+            tipo: form.tipo.value,
+            usoComun: form.usoComun.value,
+            capacidadKgMin: form.capacidadKgMin.value,
+            capacidadKgMax: form.capacidadKgMax.value,
+            capacidadM3Min: form.capacidadM3Min.value,
+            capacidadM3Max: form.capacidadM3Max.value,
+            velocidadMin: form.velocidadMin.value,
+            velocidadMax: form.velocidadMax.value
+        };
+
+        formData.set("vehiculo", new Blob([JSON.stringify(vehiculo)], { type: "application/json" }));
+
+        axios.post("/api/vehiculos/con-imagen", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        })
+        .then(() => {
+            alert("Vehículo guardado exitosamente");
+            form.reset();
+            cargarVehiculos();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error al guardar el vehículo");
+        });
+    });
+
+    function cargarProductos() {
+        axios.get("/api/productos")
+            .then(res => {
+                const tbody = document.querySelector("#tablaProductos tbody");
+                tbody.innerHTML = res.data.map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>${p.nombre}</td>
+                        <td>${p.tipoCarga}</td>
+                        <td>${p.caracteristicas}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-2" onclick='editarProducto(${JSON.stringify(p)})'>Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${p.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join("");
+            })
+            .catch(() => alert("Error al cargar productos"));
+    }
+
+    document.getElementById("formProducto").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const producto = {
+            nombre: form.nombre.value.trim(),
+            tipoCarga: form.tipoCarga.value.trim(),
+            caracteristicas: form.caracteristicas.value.trim()
+        };
+
+        if (!producto.nombre || !producto.tipoCarga || !producto.caracteristicas) {
+            alert("Todos los campos son obligatorios");
+            return;
+        }
+
+        const id = form.getAttribute("data-id");
+
+        const peticion = id
+            ? axios.put(`/api/productos/${id}`, producto)
+            : axios.post("/api/productos", producto);
+
+        peticion.then(() => {
+            alert(`Producto ${id ? "actualizado" : "guardado"} exitosamente`);
+            form.reset();
+            form.removeAttribute("data-id");
+            cargarProductos();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error al guardar el producto");
+        });
+    });
+
+    function editarProducto(producto) {
+        const form = document.getElementById("formProducto");
+        form.nombre.value = producto.nombre;
+        form.tipoCarga.value = producto.tipoCarga;
+        form.caracteristicas.value = producto.caracteristicas;
+        form.setAttribute("data-id", producto.id);
+    }
+
+    function eliminarProducto(id) {
+        if (confirm("¿Está seguro que desea eliminar este producto?")) {
+            axios.delete(`/api/productos/${id}`)
+                .then(() => cargarProductos())
+                .catch(() => alert("Error al eliminar el producto"));
+        }
+    }
+
+    function cancelarEdicion() {
+        const form = document.getElementById("formProducto");
+        form.reset();
+        form.removeAttribute("data-id");
+    }
+
+    function cargarRutas() {
+        axios.get("/api/rutas")
+            .then(res => {
+                const tbody = document.querySelector("#tablaRutas tbody");
+                tbody.innerHTML = res.data.map(r => `
+                    <tr>
+                        <td>${r.id}</td>
+                        <td>${r.origen}</td>
+                        <td>${r.destino}</td>
+                        <td>${r.distanciaKm} km</td>
+                        <td>${r.habilitada ? "Sí" : "No"}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-2" onclick='editarRuta(${JSON.stringify(r)})'>Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick='eliminarRuta(${r.id})'>Eliminar</button>
+                        </td>
+                    </tr>
+                `).join("");
+            })
+            .catch(() => alert("Error al cargar rutas"));
+    }
+
+    document.getElementById("formRuta").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const ruta = {
+            origen: form.origen.value.trim(),
+            destino: form.destino.value.trim(),
+            distanciaKm: parseFloat(form.distanciaKm.value),
+            habilitada: form.habilitada.checked
+        };
+
+        if (!ruta.origen || !ruta.destino || isNaN(ruta.distanciaKm) || ruta.distanciaKm <= 0) {
+            alert("Por favor complete todos los campos correctamente");
+            return;
+        }
+
+        const id = form.getAttribute("data-id");
+        const peticion = id
+            ? axios.put(`/api/rutas/${id}`, ruta)
+            : axios.post("/api/rutas", ruta);
+
+        peticion.then(() => {
+            alert(`Ruta ${id ? "actualizada" : "guardada"} exitosamente`);
+            form.reset();
+            form.removeAttribute("data-id");
+            cargarRutas();
+        }).catch(err => {
+            console.error(err);
+            alert("Error al guardar la ruta");
+        });
+    });
+
+    function editarRuta(ruta) {
+        const form = document.getElementById("formRuta");
+        form.origen.value = ruta.origen;
+        form.destino.value = ruta.destino;
+        form.distanciaKm.value = ruta.distanciaKm;
+        form.habilitada.checked = ruta.habilitada;
+        form.setAttribute("data-id", ruta.id);
+    }
+
+    function eliminarRuta(id) {
+        if (confirm("¿Desea eliminar esta ruta?")) {
+            axios.delete(`/api/rutas/${id}`)
+                .then(() => cargarRutas())
+                .catch(() => alert("Error al eliminar la ruta"));
+        }
+    }
+
+    function cancelarEdicionRuta() {
+        const form = document.getElementById("formRuta");
+        form.reset();
+        form.removeAttribute("data-id");
+    }
+
+    function cargarTransportes() {
+        axios.get("/api/transportes")
+            .then(res => {
+                const tbody = document.querySelector("#tablaTransportes tbody");
+                tbody.innerHTML = res.data.map(t => `
+                    <tr>
+                        <td>${t.id}</td>
+                        <td>${t.vehiculo.tipo}</td>
+                        <td>${t.producto.nombre}</td>
+                        <td>${t.ruta.origen} - ${t.ruta.destino}</td>
+                        <td>${t.cantidadKg} kg</td>
+                        <td>${t.tiempoEstimadoHoras} h</td>
+                        <td>$${t.costoEstimado}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick='editarTransporte(${JSON.stringify(t)})'>Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick='eliminarTransporte(${t.id})'>Eliminar</button>
+                        </td>
+                    </tr>
+                `).join("");
+            })
+            .catch(() => alert("Error al cargar transportes"));
+    }
+
+    document.getElementById("formTransporte").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const transporte = {
+            vehiculo: { id: parseInt(form.vehiculoId.value) },
+            producto: { id: parseInt(form.productoId.value) },
+            ruta: { id: parseInt(form.rutaId.value) },
+            cantidadKg: parseFloat(form.cantidadKg.value)
+        };
+
+        const id = form.getAttribute("data-id");
+
+        const peticion = id
+            ? axios.put(`/api/transportes/${id}`, transporte)
+            : axios.post("/api/transportes", transporte);
+
+        peticion.then(() => {
+            alert(`Transporte ${id ? "actualizado" : "guardado"} exitosamente`);
+            form.reset();
+            form.removeAttribute("data-id");
+            cargarTransportes();
+        }).catch(err => {
+            console.error(err);
+            alert("Error al guardar transporte");
+        });
+    });
+
+
+    function editarTransporte(t) {
+        const form = document.getElementById("formTransporte");
+        form.vehiculoId.value = t.vehiculo.id;
+        form.productoId.value = t.producto.id;
+        form.rutaId.value = t.ruta.id;
+        form.cantidadKg.value = t.cantidadKg;
+        form.setAttribute("data-id", t.id); // Guardamos el ID para saber que es edición
+    }
+
+    function eliminarTransporte(id) {
+        if (confirm("¿Deseas eliminar este transporte?")) {
+            axios.delete(`/api/transportes/${id}`)
+                .then(() => {
+                    alert("Transporte eliminado");
+                    cargarTransportes();
+                })
+                .catch(() => alert("Error al eliminar transporte"));
+        }
+    }
+
+    function cargarSelects() {
+        const vehiculoSelect = document.querySelectorAll('[name="vehiculoId"]');
+        const productoSelect = document.querySelectorAll('[name="productoId"]');
+        const rutaSelect = document.querySelectorAll('[name="rutaId"]');
+
+        axios.get("/api/vehiculos").then(res => {
+            const options = res.data.map(v => `<option value="${v.id}">${v.tipo}</option>`).join("");
+            vehiculoSelect.forEach(s => s.innerHTML = options);
+        });
+
+        axios.get("/api/productos").then(res => {
+            const options = res.data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join("");
+            productoSelect.forEach(s => s.innerHTML = options);
+        });
+
+        axios.get("/api/rutas").then(res => {
+            const options = res.data.map(r => `<option value="${r.id}">${r.origen} - ${r.destino}</option>`).join("");
+            rutaSelect.forEach(s => s.innerHTML = options);
+        });
+    }
+
+    // Carga inicial
+    cargarVehiculos();
+    cargarProductos();
+    cargarRutas();
+    cargarTransportes();
+    cargarSelects();
+
 </script>
+
+    <footer class="bg-dark text-white text-center py-4">
+        <p>Los Foráneos © 2025 - Todos los derechos reservados</p>
+    </footer>
+
 </body>
 </html>
-
