@@ -90,6 +90,13 @@ public class RutaServicio {
         return rutaRepositorio.count();
     }
 
+    @Transactional(readOnly = true)
+    public Ruta buscarPorId(Long id) {
+        return rutaRepositorio.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ruta no encontrada con ID: " + id));
+    }
+
+
     private void validarRuta(Ruta ruta) {
         if (ruta == null) {
             throw new InformacionIncompletaExcepcion("La ruta no puede ser nula.");

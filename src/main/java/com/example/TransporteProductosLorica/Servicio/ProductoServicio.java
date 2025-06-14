@@ -3,12 +3,11 @@ package com.example.TransporteProductosLorica.Servicio;
 import com.example.TransporteProductosLorica.Excepciones.InformacionIncompletaExcepcion;
 import com.example.TransporteProductosLorica.Modelo.Producto;
 import com.example.TransporteProductosLorica.Repositorio.ProductoRepositorio;
-
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class ProductoServicio {
@@ -65,11 +64,22 @@ public class ProductoServicio {
 
     @Transactional
     public List<Producto> filtrarPorTipoCarga(String tipoCarga) {
-        return productoRepositorio.findByTipoCargaIgnoreCase(tipoCarga);
+        try {
+            Producto.TipoCarga tipoEnum = Producto.TipoCarga.valueOf(tipoCarga.toUpperCase());
+            return productoRepositorio.findByTipoCarga(tipoEnum);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Tipo de carga no válido: " + tipoCarga);
+        }
     }
 
     public long contarProductos() {
         return productoRepositorio.count();
+    }
+
+    @Transactional(readOnly = true)
+    public Producto buscarPorId(Long id) {
+        return productoRepositorio.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado con ID: " + id));
     }
 
     private void validarProducto(Producto producto) {
@@ -81,19 +91,13 @@ public class ProductoServicio {
             throw new InformacionIncompletaExcepcion("El nombre del producto no puede estar vacío.");
         }
 
-        if (producto.getTipoCarga() == null || producto.getTipoCarga().isBlank()) {
+        if (producto.getTipoCarga() == null) {
             throw new InformacionIncompletaExcepcion("El tipo de carga no puede estar vacío.");
         }
 
         if (producto.getCaracteristicas() == null || producto.getCaracteristicas().isBlank()) {
             throw new InformacionIncompletaExcepcion("Las características no pueden estar vacías.");
         }
-
-        String tipoCarga = producto.getTipoCarga().toLowerCase();
-        List<String> tiposValidos = List.of("refrigerado", "peligroso", "agrícola", "liviano");
-
-        if (!tiposValidos.contains(tipoCarga)) {
-            throw new IllegalArgumentException("Tipo de carga no reconocido: " + producto.getTipoCarga());
-        }
     }
+
 }

@@ -1,9 +1,6 @@
 package com.example.TransporteProductosLorica.Modelo;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Producto {
@@ -11,16 +8,29 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nombre;
-    private String tipoCarga;
+
+    @Enumerated(EnumType.STRING)
+    private TipoCarga tipoCarga;
     private String caracteristicas;
 
-    public Producto(String nombre, String tipoCarga, String caracteristicas) {
+    public Producto(String nombre, TipoCarga tipoCarga, String caracteristicas) {
         this.nombre = nombre;
         this.tipoCarga = tipoCarga;
         this.caracteristicas = caracteristicas;
     }
 
     public Producto() {
+    }
+
+    public enum TipoCarga {
+        REFRIGERADO,
+        PELIGROSO,
+        AGRICOLA,
+        LIVIANO,
+        PERECEDERO,
+        NO_PERECEDERO,
+        GRANO,
+        FRUTA_FRESCA
     }
 
     public Long getId() {
@@ -39,11 +49,11 @@ public class Producto {
         this.nombre = nombre;
     }
 
-    public String getTipoCarga() {
+    public TipoCarga getTipoCarga() {
         return tipoCarga;
     }
 
-    public void setTipoCarga(String tipoCarga) {
+    public void setTipoCarga(TipoCarga tipoCarga) {
         this.tipoCarga = tipoCarga;
     }
 

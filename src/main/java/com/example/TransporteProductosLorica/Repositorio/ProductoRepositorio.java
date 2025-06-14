@@ -11,5 +11,5 @@ import org.springframework.stereotype.Repository;
 public interface ProductoRepositorio extends JpaRepository<Producto, Long> {
     boolean existsByNombre(String nombre);
     List<Producto> findByNombreContainingIgnoreCase(String nombre);
-    List<Producto> findByTipoCargaIgnoreCase(String tipoCarga);
+    List<Producto> findByTipoCarga(Producto.TipoCarga tipoCarga);
 }
